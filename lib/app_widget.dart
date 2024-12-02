@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:time_manager/itemsProvider.dart';
+import 'package:time_manager/model/itemsProvider.dart';
 
 import 'components/row_time.dart';
 

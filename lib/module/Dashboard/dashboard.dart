@@ -6,6 +6,7 @@ import 'package:time_manager/components/dashboardHeader.dart';
 import 'package:time_manager/utils.dart';
 
 
+
 class Dashboard extends StatefulWidget {
   Dashboard({super.key});
 
@@ -27,6 +28,7 @@ class _DashboardState extends State<Dashboard> {
     _startTimer();
   }
 
+
   void _startTimer() {
     timer = Timer.periodic(const Duration(milliseconds: 100), (Timer timer) {
       setState(() {
@@ -42,7 +44,10 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   void dispose() {
-    timer.cancel();
+    if(!stopwatch.isRunning){
+      timer.cancel();
+      stopwatch.stop();
+    }
     super.dispose();
   }
 

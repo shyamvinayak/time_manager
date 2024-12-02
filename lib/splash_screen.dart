@@ -4,6 +4,8 @@ import 'package:time_manager/assets.dart';
 import 'package:time_manager/utils.dart';
 
 import 'Routes/routes.dart';
+import 'db/sqlitedb.dart';
+import 'model/userprofile.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,9 +19,18 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Navigate to the home screen after a delay
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), ()async {
+      List<UserProfile> profiles = await DatabaseHelper().getUserProfiles();
+   /*   if(profiles.isNotEmpty){
+        Navigator.pushReplacementNamed(
+            context, AppRoutes.dashboard); // Or your main screen route
+      }else{
+        Navigator.pushReplacementNamed(
+            context, AppRoutes.userProfile);
+      }*/
       Navigator.pushReplacementNamed(
           context, AppRoutes.dashboard); // Or your main screen route
+
     });
   }
 

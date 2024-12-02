@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'db/check_in_out_record.dart';
+import 'model/check_in_out_record.dart';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -22,7 +25,7 @@ const String dashBoard = 'Dashboard';
 const String download = 'Download';
 const String delete = 'Delete Record';
 const String checkInOutRecords = 'CheckInOutRecords';
-const String nRf = 'No records found.';
+const String nRf = 'No records for the selected date';
 const String total = 'Total';
 const String checkInOut = 'check_in_out';
 const String timeManger = 'TimeManager';
@@ -31,7 +34,12 @@ const String sqDB = 'check_in_out.db';
 const String checkInTime = 'checkInTime';
 const String checkOutTime = 'checkOutTime';
 const String androidName = 'QuoteWidget';
+const String enter_name = "Enter your name";
+const String enter_dob = "Enter your date of birth";
+const String enter_data = "Enter your details";
 const platform = MethodChannel('com.example.widget/data');
+DateTime date =
+    DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
 String formatDateTime(DateTime dateTime) {
   return DateFormat('HH:mm:ss').format(dateTime);
@@ -51,59 +59,27 @@ String formatElapsedTime(Duration time) {
 }
 
 String calculateTotalHours(List<CheckInOutRecord> records) {
-  //Duration totalDuration = const Duration();
-  int checkInMinutes = 0;
-  int checkOutMinutes = 0;
-  int differenceInMinutes = 0;
-  for (var record in records) {
-    //totalDuration += record.checkOutTime.difference(record.checkInTime);\
-    checkInMinutes = record.checkInTime.hour * 60 + record.checkInTime.minute;
-    checkOutMinutes =
-        record.checkOutTime.hour * 60 + record.checkOutTime.minute;
-    differenceInMinutes = (checkOutMinutes - checkInMinutes).abs();
+  int totalMinutes = 0;
+
+  for (var period in records) {
+    int checkInMinutes =
+        period.checkInTime.hour * 60 + period.checkInTime.minute;
+    int checkOutMinutes =
+        period.checkOutTime.hour * 60 + period.checkOutTime.minute;
+
+    // Calculate the duration in minutes
+    int differenceInMinutes = (checkOutMinutes - checkInMinutes).abs();
+
+    // Add to total minutes
+    totalMinutes += differenceInMinutes;
   }
-// Convert the difference to hours and minutes
-  int hours = differenceInMinutes ~/ 60;
-  int minutes = differenceInMinutes % 60;
+  // Convert total minutes to hours
+  double totalHours = totalMinutes / 60.0;
+  debugPrintStack(label: "Duration:${totalHours.toString().padLeft(2, '0')}");
 
-  /*int hours = totalDuration.inHours;
-  int minutes = totalDuration.inMinutes % 60;
-
-  if (totalDuration.inMinutes == 0 && totalDuration.inSeconds > 0) {
-    minutes = 1;
-  }*/
-
-  // return totalDuration.toString().split('.').first.padLeft(8, "0");
-  return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(
-      2, '0')}';
+  return totalHours.toStringAsFixed(2);
 }
 
-/*String calculateDuration(DateTime checkInTime, DateTime checkOutTime) {
-
-  Duration duration = checkOutTime.difference(checkInTime);
-
-  // Get hours and minutes from the duration
-  int hours = duration.inHours;
-  int minutes = duration.inMinutes % 60;
-
-  debugPrintStack(label: "Duration:--${duration.inDays}");
-
- */
-/* // Ensure duration shows 00:00 if the times are the same
-  if (hours == 0 && minutes == 0 && duration.inSeconds == 0) {
-    return '00:00';
-  }
-
-  // If duration is less than a minute but greater than zero, show as 00:01
-  if (hours == 0 && minutes == 0 && duration.inSeconds > 0) {
-    minutes = 1;
-  }*/
-/*
-
-
-  // Return a formatted string with hours and minutes only
-  return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
-}*/
 
 String calculateDuration(DateTime checkInTime, DateTime checkOutTime) {
   // Convert both times to total minutes since midnight
@@ -118,8 +94,7 @@ String calculateDuration(DateTime checkInTime, DateTime checkOutTime) {
   int minutes = differenceInMinutes % 60;
 
   // Return the result as a formatted string
-  return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(
-      2, '0')}';
+  return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
 }
 
 // Group records by check-in date
@@ -151,12 +126,12 @@ Future<void> createAndSharePDF(List<CheckInOutRecord> records) async {
           children: [
             pw.Text('Check In/Out Records',
                 style:
-                pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 10),
             pw.Table.fromTextArray(
               headers: ['Date', 'Check-In', 'Check-Out', 'Total Hours'],
               data: List.generate(records.length + 1, (index) {
-                if(index< records.length){
+                if (index < records.length) {
                   var record = records[index];
                   return [
                     DateFormat('yyyy-MM-dd').format(record.checkInTime),
@@ -201,20 +176,26 @@ Future<void> createAndSharePDF(List<CheckInOutRecord> records) async {
       onLayout: (PdfPageFormat format) async => pdf.save());
 }
 
-Future<List<CheckInOutRecord>> getRecord() async {
+Future<List<CheckInOutRecord>> getRecord(DateTime selectedDate) async {
   final dbHelper = DatabaseHelper();
-  return await dbHelper.getCheckInOutRecords();
+  //return await dbHelper.getCheckInOutRecords();
+  return await dbHelper.getCheckInOutRecordsByDate(selectedDate);
 }
 
-void downloadRecord() async {
+void downloadRecord(DateTime selectedDate) async {
   // Your download logic here
-  List<CheckInOutRecord> records = await getRecord();
+  List<CheckInOutRecord> records = await getRecord(selectedDate);
   createAndSharePDF(records); // Create and share the PDF
 }
 
 void deleteAllFromDB() async {
   final dbHelper = DatabaseHelper();
   await dbHelper.deleteAllRecord();
+}
+
+void deleteDataByDate(DateTime selectedDate)async{
+  final dbHelper = DatabaseHelper();
+  await dbHelper.deleteCheckInOutRecordsByDate(selectedDate);
 }
 
 Future<void> backgroundCallback(Uri? uri) async {
@@ -227,7 +208,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     });
     await HomeWidget.saveWidgetData<int>('_counter', counter);
     await HomeWidget.updateWidget(
-      //this must the class name used in .Kt
+        //this must the class name used in .Kt
         name: 'HomeScreenWidgetProvider',
         iOSName: 'HomeScreenWidgetProvider');
   }
@@ -242,11 +223,31 @@ void updateAndroidWidget(DateTime? inTime, DateTime? outTime) {
   );
 }
 
-Future<void> sendDataToWidget(List<CheckInOutRecord>data) async {
+Future<void> sendDataToWidget(List<CheckInOutRecord> data) async {
   try {
     await platform.invokeMethod('sendDataToWidget', {'data': data});
   } on PlatformException catch (e) {
     print("Failed to send data: ${e.message}");
   }
 }
+
+//Show SnackBar
+void showCommonSnackbar(BuildContext context, String message,
+    {Duration duration = const Duration(seconds: 3),
+    String? actionLabel,
+    VoidCallback? onAction}) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    duration: duration,
+    action: actionLabel != null
+        ? SnackBarAction(
+            label: actionLabel,
+            onPressed: onAction ?? () {},
+          )
+        : null,
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
 

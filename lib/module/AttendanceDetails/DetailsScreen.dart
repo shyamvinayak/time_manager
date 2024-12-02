@@ -1,9 +1,12 @@
+import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:time_manager/components/row_time.dart';
+import 'package:time_manager/date_change_provider.dart';
 
 import '../../utils.dart';
-import '../../db/check_in_out_record.dart';
+import '../../model/check_in_out_record.dart';
 
 class DetailsScreen extends StatefulWidget {
   const DetailsScreen({super.key});
@@ -14,18 +17,21 @@ class DetailsScreen extends StatefulWidget {
 
 class _DetailsScreenState extends State<DetailsScreen> {
   bool hasData = false;
+  DateTime _selectedDate = DateTime.now();
+  late final EasyDatePickerController _controller;
   late Future<List<CheckInOutRecord>> _recordsFuture;
 
   @override
   void initState() {
     super.initState();
-    _recordsFuture = getRecord();
+    _recordsFuture = getRecord(_selectedDate);
+    _controller = EasyDatePickerController();
   }
 
   void handleClick(String value) {
     switch (value) {
       case download:
-        downloadRecord();
+        downloadRecord(_selectedDate);
         break;
       case delete:
         deleteRecord();
@@ -34,10 +40,16 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   void deleteRecord() async {
-    deleteAllFromDB();
+    deleteDataByDate(_selectedDate);
     setState(() {
-      _recordsFuture = getRecord();
+      _recordsFuture = getRecord(_selectedDate);
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,53 +109,84 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     hasData = true;
                   });
                 });
-                List<CheckInOutRecord> records = snapshot.data!;
+                List<CheckInOutRecord> records = snapshot.data!.toList();
                 Map<String, List<CheckInOutRecord>> groupedRecords =
                     groupByDate(records);
-                List<String> groupedKeys = groupedRecords.keys.toList();
-                return Expanded(
-                  child: ListView.builder(
-                    itemCount: groupedKeys.length,
-                    itemBuilder: (context, index) {
-                      String date = groupedKeys[index];
-                      List<CheckInOutRecord> dailyRecords =
-                          groupedRecords[date]!;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Text(
-                              DateFormat('EEEE, MMMM d, yyyy')
-                                  .format(dailyRecords[index].chooseDate),
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w300),
-                            ),
+
+                return Consumer<DatePickerModel>(
+                  builder: (context, value, child) {
+                    List<CheckInOutRecord> selectedDateRecords = groupedRecords[
+                            DateFormat('yyyy-MM-dd')
+                                .format(value.selectedDate)] ??
+                        [];
+
+                    String totalHours =
+                        calculateTotalHours(selectedDateRecords);
+
+                    return Column(
+                      children: [
+                        EasyDateTimeLinePicker(
+                          controller: _controller,
+                          firstDate: DateTime(
+                            DateTime.now().year,
+                            DateTime.now().month,
+                            1,
                           ),
-                          const SizedBox(height: 15),
-                          ...dailyRecords.map(
-                            (record) => RowTime(
-                              checkInTime: record.checkInTime,
-                              checkOutTime: record.checkOutTime,
-                              isDashboard: false,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ListTile(
-                            title: const Text(
-                              total,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            trailing: Text(
-                              calculateTotalHours(dailyRecords),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const Divider(),
-                        ],
-                      );
-                    },
-                  ),
+                          lastDate: DateTime.now(),
+                          focusedDate: value.selectedDate,
+                          onDateChange: (date) {
+                            setState(() {
+                              _selectedDate = date;
+                              value.setSelectedDate(_selectedDate);
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        selectedDateRecords.isEmpty
+                            ? const Expanded(
+                                child: Center(
+                                  child: Text(nRf),
+                                ),
+                              )
+                            : Expanded(
+                                child: ListView.builder(
+                                  itemCount: selectedDateRecords.length,
+                                  itemBuilder: (context, index) {
+                                    CheckInOutRecord record =
+                                        selectedDateRecords[index];
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        RowTime(
+                                          checkInTime: record.checkInTime,
+                                          checkOutTime: record.checkOutTime,
+                                          isDashboard: false,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        if (index ==
+                                            selectedDateRecords.length - 1)
+                                          ListTile(
+                                            title: const Text(
+                                              total,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            trailing: Text(
+                                              calculateTotalHours(
+                                                  selectedDateRecords),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                      ],
+                    );
+                  },
                 );
               }
             },
