@@ -56,7 +56,9 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text(
           dashBoard,
           style: TextStyle(fontWeight: FontWeight.w600),

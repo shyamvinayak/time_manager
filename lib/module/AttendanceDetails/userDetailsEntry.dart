@@ -6,8 +6,8 @@ import 'package:time_manager/assets.dart';
 import 'package:time_manager/model/userprofile.dart';
 import 'package:time_manager/utils.dart';
 
-import '../Routes/routes.dart';
-import '../db/sqlitedb.dart';
+import '../../Routes/routes.dart';
+import '../../db/sqlitedb.dart';
 
 class UserDetailsEntry extends StatefulWidget {
   const UserDetailsEntry({super.key});
@@ -42,10 +42,10 @@ class _UserDetailsEntryState extends State<UserDetailsEntry> {
 
     if (txtName_valiadate || txtDate_valiadate) {
       if (txtName_valiadate) {
-        showCommonSnackbar(context, 'Name cannot be empty');
+        showCommonSnackBar(context, 'Name cannot be empty');
       }
       if (txtDate_valiadate) {
-        showCommonSnackbar(context, 'Date of Birth cannot be empty');
+        showCommonSnackBar(context, 'Date of Birth cannot be empty');
       }
       return; // Exit the function if validation fails
     }
@@ -60,12 +60,12 @@ class _UserDetailsEntryState extends State<UserDetailsEntry> {
         print('Successfully added user profile with id $id');
         // Show a success message or navigate to another screen
       } else {
-        showCommonSnackbar(context, 'Failed to add user profile');
+        showCommonSnackBar(context, 'Failed to add user profile');
         print('Failed to add user profile');
         // Show an error message
       }
     } catch (e) {
-      showCommonSnackbar(context, 'Error adding user profile: $e');
+      showCommonSnackBar(context, 'Error adding user profile: $e');
       print('Error adding user profile: $e');
       // Handle the error, show an alert or a snackbar
     }

@@ -23,7 +23,7 @@ const String checkOut = 'Check Out';
 const String totalHrs = 'Total Hrs';
 const String dashBoard = 'Dashboard';
 const String download = 'Download';
-const String delete = 'Delete Record';
+const String delete = 'Delete Recorde';
 const String checkInOutRecords = 'CheckInOutRecords';
 const String nRf = 'No records for the selected date';
 const String total = 'Total';
@@ -62,32 +62,47 @@ String calculateTotalHours(List<CheckInOutRecord> records) {
   int totalMinutes = 0;
 
   for (var period in records) {
-    int checkInMinutes =
-        period.checkInTime.hour * 60 + period.checkInTime.minute;
-    int checkOutMinutes =
-        period.checkOutTime.hour * 60 + period.checkOutTime.minute;
+    int checkInMinutes = period.checkInTime.hour * 60 + period.checkInTime.minute;
+    int checkOutMinutes = period.checkOutTime.hour * 60 + period.checkOutTime.minute;
+
+    // Handle potential day boundary (if checkout time is before check-in time)
+    if (checkOutMinutes < checkInMinutes) {
+      // Assuming check-out time is on the next day
+      checkOutMinutes += 24 * 60; // Add 1440 minutes (24 hours)
+    }
 
     // Calculate the duration in minutes
-    int differenceInMinutes = (checkOutMinutes - checkInMinutes).abs();
+    int differenceInMinutes = checkOutMinutes - checkInMinutes;
 
     // Add to total minutes
     totalMinutes += differenceInMinutes;
+
+    // Debugging: print the check-in and check-out minutes
+    debugPrint('CheckIn: $checkInMinutes, CheckOut: $checkOutMinutes, Duration: $differenceInMinutes minutes');
   }
+
   // Convert total minutes to hours
   double totalHours = totalMinutes / 60.0;
-  debugPrintStack(label: "Duration:${totalHours.toString().padLeft(2, '0')}");
 
+  // Print stack trace for debugging
+  debugPrintStack(label: "Duration: ${totalHours.toStringAsFixed(2)} hours");
+
+  // Return the result as a fixed-point string
   return totalHours.toStringAsFixed(2);
 }
 
-
 String calculateDuration(DateTime checkInTime, DateTime checkOutTime) {
-  // Convert both times to total minutes since midnight
   int checkInMinutes = checkInTime.hour * 60 + checkInTime.minute;
   int checkOutMinutes = checkOutTime.hour * 60 + checkOutTime.minute;
 
+  // Handle potential day boundary (if checkout time is before check-in time)
+  if (checkOutMinutes < checkInMinutes) {
+    // Assuming check-out time is on the next day
+    checkOutMinutes += 24 * 60; // Add 1440 minutes (24 hours)
+  }
+
   // Compute the absolute difference in minutes
-  int differenceInMinutes = (checkOutMinutes - checkInMinutes).abs();
+  int differenceInMinutes = checkOutMinutes - checkInMinutes;
 
   // Convert the difference to hours and minutes
   int hours = differenceInMinutes ~/ 60;
@@ -96,6 +111,7 @@ String calculateDuration(DateTime checkInTime, DateTime checkOutTime) {
   // Return the result as a formatted string
   return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
 }
+
 
 // Group records by check-in date
 Map<String, List<CheckInOutRecord>> groupByDate(
@@ -232,7 +248,7 @@ Future<void> sendDataToWidget(List<CheckInOutRecord> data) async {
 }
 
 //Show SnackBar
-void showCommonSnackbar(BuildContext context, String message,
+void showCommonSnackBar(BuildContext context, String message,
     {Duration duration = const Duration(seconds: 3),
     String? actionLabel,
     VoidCallback? onAction}) {
@@ -249,5 +265,21 @@ void showCommonSnackbar(BuildContext context, String message,
 
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
+
+/*Future<void> _selectDate(BuildContext context) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime.now(),
+  );
+  if (picked != null && picked != _selectedDate) {
+    setState(() {
+      _selectedDate = picked;
+      Provider.of<DatePickerModel>(context, listen: false)
+          .setSelectedDate(_selectedDate);
+    });
+  }
+}*/
 
 

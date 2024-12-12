@@ -50,10 +50,10 @@ class _DashboardBodyState extends State<DashboardBody> {
   // Toggle the stopwatch and manage check-in/check-out times
   void toggleStopwatch() {
     if (!widget.stopwatch.isRunning) {
-      startService();
+      //startService();
       startStopwatch();
     } else {
-      stopService();
+      //stopService();
       stopStopwatch();
     }
     SystemSound.play(SystemSoundType.click);

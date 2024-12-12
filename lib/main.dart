@@ -9,7 +9,7 @@ import 'package:time_manager/date_change_provider.dart';
 import 'package:time_manager/splash_screen.dart';
 
 import 'model/itemsProvider.dart';
-import 'module/userDetailsEntry.dart';
+import 'module/AttendanceDetails/userDetailsEntry.dart';
 import 'utils.dart';
 import 'module/AttendanceDetails/DetailsScreen.dart';
 import 'module/Dashboard/dashboard.dart';
