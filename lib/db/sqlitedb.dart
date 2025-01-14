@@ -62,6 +62,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       ''');
     }
 
+    // Insert or replace user profile data
     Future<int> insertUserProfile(UserProfile userProfile) async {
       final db = await database;
       return await db.insert(
@@ -71,6 +72,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Insert check-in and check-out record
     Future<void> insertCheckInOutRecord(CheckInOutRecord record) async {
       final db = await database;
       await db.insert(
@@ -83,6 +85,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Get all user profiles
     Future<List<UserProfile>> getUserProfiles() async {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query('user_profile');
@@ -96,6 +99,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       });
     }
 
+    // Get all check-in/out records
     Future<List<CheckInOutRecord>> getCheckInOutRecords() async {
       final db = await database;
       final List<Map<String, dynamic>> maps = await db.query(checkInOut);
@@ -109,6 +113,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       });
     }
 
+    // Update user profile
     Future<void> updateUserProfile(UserProfile userProfile) async {
       final db = await database;
       await db.update(
@@ -119,6 +124,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Update check-in/check-out record
     Future<void> updateCheckInOutRecord(CheckInOutRecord record) async {
       final db = await database;
       await db.update(
@@ -132,6 +138,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Delete user profile by id
     Future<void> deleteUserProfile(int id) async {
       final db = await database;
       await db.delete(
@@ -141,6 +148,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Delete check-in/check-out record by id
     Future<void> deleteCheckInOutRecord(int id) async {
       final db = await database;
       await db.delete(
@@ -150,11 +158,13 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Delete all check-in/check-out records
     Future<void> deleteAllRecord()async{
       final db = await database;
       await db.delete(checkInOut);
     }
 
+    // Delete check-in/check-out records for a specific date
     Future<void> deleteCheckInOutRecordsByDate(DateTime date) async {
       final db = await database;
       await db.delete(
@@ -164,6 +174,7 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
       );
     }
 
+    // Get check-in/check-out records by date
     Future<List<CheckInOutRecord>> getCheckInOutRecordsByDate(DateTime date) async {
       final db = await database;
       final String formattedDate = DateFormat('yyyy-MM-dd').format(date);
@@ -181,6 +192,13 @@ import '../model/check_in_out_record.dart';  // Adjust the import to your model
           checkOutTime: DateTime.parse(maps[i][checkOutTime]),
         );
       });
+    }
+
+    // Check if table is empty
+    Future<bool> isTableDataEmpty(String tableName) async {
+      final db = await database;
+      final result = await db.query(tableName, limit: 1);  // Get one record to check
+      return result.isEmpty;  // Returns true if there are no rows in the table, false if there are any rows
     }
 
   }

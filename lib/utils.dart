@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 
@@ -131,6 +132,8 @@ Map<String, List<CheckInOutRecord>> groupByDate(
   return groupedRecords;
 }
 
+
+//Create PDF DOC and share
 Future<void> createAndSharePDF(List<CheckInOutRecord> records) async {
   final pdf = pw.Document();
 
@@ -194,8 +197,12 @@ Future<void> createAndSharePDF(List<CheckInOutRecord> records) async {
 
 Future<List<CheckInOutRecord>> getRecord(DateTime selectedDate) async {
   final dbHelper = DatabaseHelper();
-  //return await dbHelper.getCheckInOutRecords();
   return await dbHelper.getCheckInOutRecordsByDate(selectedDate);
+}
+
+Future<List<CheckInOutRecord>> getAllRecord( ) async {
+  final dbHelper = DatabaseHelper();
+  return await dbHelper.getCheckInOutRecords();
 }
 
 void downloadRecord(DateTime selectedDate) async {
@@ -227,6 +234,17 @@ Future<void> backgroundCallback(Uri? uri) async {
         //this must the class name used in .Kt
         name: 'HomeScreenWidgetProvider',
         iOSName: 'HomeScreenWidgetProvider');
+  }
+}
+
+void checkIfDatabaseHasData() async {
+  bool isCheckInOutEmpty = await DatabaseHelper().isTableDataEmpty('check_in_out');
+
+  if (isCheckInOutEmpty) {
+    log("Records are empty.");
+    //print("Records are empty.");
+  } else {
+    log("Table contains data.");
   }
 }
 

@@ -6,7 +6,7 @@ import '../model/check_in_out_record.dart';
 import '../db/sqlitedb.dart';
 import 'package:flutter/services.dart';
 import 'circularImageButton.dart';
-import 'package:vibration/vibration.dart';
+/*import 'package:vibration/vibration.dart';*/
 
 class DashboardBody extends StatefulWidget {
   final Stopwatch stopwatch;
@@ -17,8 +17,17 @@ class DashboardBody extends StatefulWidget {
   State<DashboardBody> createState() => _DashboardBodyState();
 }
 
-class _DashboardBodyState extends State<DashboardBody> {
+class _DashboardBodyState extends State<DashboardBody> with RestorationMixin {
   final dbHelper = DatabaseHelper();
+
+  // Restorable properties for state restoration
+  final RestorableBool _isStopwatchRunning = RestorableBool(false);
+  final RestorableDateTimeN _checkInTime = RestorableDateTimeN(null);
+  final RestorableDateTimeN _checkOutTime = RestorableDateTimeN(null);
+
+  @override
+  String get restorationId => 'dashboard_body';
+
   DateTime? checkInTime; // Variable to store check-in time
   DateTime? checkOutTime; // Variable to store check-out time
   String nativeMessage = '';
@@ -40,6 +49,20 @@ class _DashboardBodyState extends State<DashboardBody> {
     dynamic value = await appChannel.invokeMethod('stopService');
     print("STOP"+value);
   }
+
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_isStopwatchRunning, 'isStopwatchRunning');
+    registerForRestoration(_checkInTime, 'checkInTime');
+    registerForRestoration(_checkOutTime, 'checkOutTime');
+
+    // Restore stopwatch state
+    if (_isStopwatchRunning.value) {
+      widget.stopwatch.start();
+    }
+  }
+
 
   @override
   void dispose() {
@@ -67,7 +90,8 @@ class _DashboardBodyState extends State<DashboardBody> {
   }
 
   void stopStopwatch() async {
-    Vibration.vibrate();
+   /* Vibration.vibrate();*/
+    HapticFeedback.heavyImpact();
     widget.stopwatch.stop();
     checkOutTime = DateTime.now(); // Set current time as check-out time
     // Save the check-in/out record to db

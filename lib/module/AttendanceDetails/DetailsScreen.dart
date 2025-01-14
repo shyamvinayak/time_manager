@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:date_picker_timeline/date_picker_widget.dart';
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:time_manager/components/row_time.dart';
 import 'package:time_manager/date_change_provider.dart';
 import 'package:time_manager/module/AttendanceDetails/SingleListItems.dart';
 
+import '../../db/sqlitedb.dart';
 import '../../utils.dart';
 import '../../model/check_in_out_record.dart';
 
@@ -22,6 +25,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final _now = DateTime.now();
   DateTime _selectedDate = DateTime.now();
   late EasyDatePickerController _controller;
+  late  bool isCheckInOutEmpty;
 
   late Future<List<CheckInOutRecord>> _recordsFuture;
 
@@ -30,8 +34,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
     super.initState();
     _controller = EasyDatePickerController();
     Provider.of<DatePickerModel>(context, listen: false)
-        .setSelectedDate(DateTime.now());
-    _recordsFuture = getRecord(_selectedDate);
+        .setSelectedDate(_now);
+    //_recordsFuture = getRecord(_selectedDate);
+    _recordsFuture = getAllRecord();
   }
 
   void handleClick(String value) {
@@ -118,17 +123,17 @@ class _DetailsScreenState extends State<DetailsScreen> {
                        List<CheckInOutRecord> records = snapshot.data!.toList();
                        Map<String, List<CheckInOutRecord>> groupedRecords =
                        groupByDate(records);
-               
+
                        return Consumer<DatePickerModel>(
                          builder: (context, value, child) {
                            List<CheckInOutRecord> selectedDateRecords = groupedRecords[
                            DateFormat('yyyy-MM-dd')
                                .format(value.selectedDate)] ??
                                [];
-               
+
                            String totalHours =
                            calculateTotalHours(selectedDateRecords);
-               
+
                            return Column(
                              children: [
                                selectedDateRecords.isEmpty

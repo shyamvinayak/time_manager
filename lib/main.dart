@@ -17,9 +17,12 @@ import 'module/Dashboard/dashboard.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   /*await initializeService();*/
-  runApp(ChangeNotifierProvider(
-    create: (context) => DatePickerModel(),
-    child: const MyApp(),
+  runApp(RestorationScope(
+    restorationId: 'root',
+    child: ChangeNotifierProvider(
+      create: (context) => DatePickerModel(),
+      child: const MyApp(),
+    ),
   ));
 }
 
@@ -73,6 +76,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: timeManger,
+        restorationScopeId: 'application',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
