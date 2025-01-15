@@ -34,11 +34,6 @@ class _DashboardBodyState extends State<DashboardBody> with RestorationMixin {
   final service = FlutterBackgroundService();
   static const appChannel = MethodChannel('com.background_service');
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
 
   void startService() async {
     dynamic value = await appChannel.invokeMethod('startService');

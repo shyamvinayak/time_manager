@@ -16,7 +16,77 @@ import 'module/Dashboard/dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  /*await initializeService();*/
+  runApp(RestorationScope(
+    restorationId: 'root',
+    child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DatePickerModel()),
+        ChangeNotifierProvider(create: (_) => ItemsProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  ));
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);  // Add observer for lifecycle events
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);  // Remove observer
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      // Save the stopwatch state
+      final stopwatchProvider = Provider.of<ItemsProvider>(context, listen: false);
+      stopwatchProvider.saveStopwatchState();
+    }
+  }
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: timeManger,
+      restorationScopeId: 'application',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      initialRoute: getInitialPage(),
+      routes: <String, Widget Function(BuildContext)>{
+        AppRoutes.splashScreen: (context) => const SplashScreen(),
+        AppRoutes.dashboard: (context) => Dashboard(),
+        AppRoutes.detailScreen: (context) => const DetailsScreen(),
+        AppRoutes.userProfile: (context) => const UserDetailsEntry(),
+      },
+    );
+  }
+
+  String getInitialPage() => AppRoutes.splashScreen;
+}
+
+/*void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  */
+/*await initializeService();*/
+/*
   runApp(RestorationScope(
     restorationId: 'root',
     child: ChangeNotifierProvider(
@@ -24,9 +94,7 @@ void main() async {
       child: const MyApp(),
     ),
   ));
-}
-
-Future<void> initializeService() async {
+}Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
   await service.configure(
@@ -34,9 +102,7 @@ Future<void> initializeService() async {
     androidConfiguration:
         AndroidConfiguration(onStart: onStart, isForegroundMode: true),
   );
-}
-
-@pragma('vm:entry-point')
+}@pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -61,9 +127,7 @@ void onStart(ServiceInstance service) async {
       }
     }
   });
-}
-
-class MyApp extends StatelessWidget {
+}class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
@@ -93,4 +157,4 @@ class MyApp extends StatelessWidget {
   }
 
   String getInitialPage() => AppRoutes.splashScreen;
-}
+}*/

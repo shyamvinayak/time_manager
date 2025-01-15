@@ -5,4 +5,6 @@ class Assets {
   static const String logo = "assets/images/logo.png";
   static const String splash = "assets/splash.json";
   static const String main_bg = "assets/main_bg.json";
+  static const String no_dta_found = "assets/nDf.json";
+  static const String loading = "assets/loading.json";
 }

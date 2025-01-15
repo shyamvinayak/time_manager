@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:time_manager/assets.dart';
+import 'package:time_manager/model/itemsProvider.dart';
 import 'package:time_manager/utils.dart';
 
 import 'Routes/routes.dart';
@@ -18,19 +20,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate to the home screen after a delay
-    Future.delayed(const Duration(seconds: 3), ()async {
-      List<UserProfile> profiles = await DatabaseHelper().getUserProfiles();
-   /*   if(profiles.isNotEmpty){
-        Navigator.pushReplacementNamed(
-            context, AppRoutes.dashboard); // Or your main screen route
-      }else{
-        Navigator.pushReplacementNamed(
-            context, AppRoutes.userProfile);
-      }*/
-      Navigator.pushReplacementNamed(
-          context, AppRoutes.dashboard); // Or your main screen route
 
+    // Navigate to the home screen after a delay
+    Future.delayed(const Duration(seconds: 3), () async {
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+      final stopwatchProvider =
+          Provider.of<ItemsProvider>(context, listen: false);
+      await stopwatchProvider
+          .loadStopwatchState(); // Load the saved stopwatch state
     });
   }
 
